@@ -1,0 +1,43 @@
+name: Terraform Deploy to New Relic
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 0.15.0
+
+      - name: Authenticate to New Relic
+        run: |
+          echo "$NEW_RELIC_API_KEY" > ~/.newrelic-api-key
+          chmod 600 ~/.newrelic-api-key
+
+      - name: Initialize Terraform
+        run: terraform init
+
+      - name: Plan Terraform changes
+        run: terraform plan
+
+      - name: Apply Terraform changes
+        run: |
+          terraform apply -auto-approve
+          echo "::set-output name=status::success"
+
+      - name: Deploy to New Relic
+        if: steps.deploy.outputs.status == 'success'
+        run: |
+          # Add commands to deploy your application to New Relic (e.g., New Relic APM or Synthetics).
+
+      - name: Clean up
+        run: terraform destroy -auto-approve
